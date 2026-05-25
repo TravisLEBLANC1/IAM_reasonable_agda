@@ -23,11 +23,17 @@ data _⋈ctx_ : ∀ {n} → ctx n → ctx n → Set where
 ⋈ctx-refl {Γ = nil}    = nil
 ⋈ctx-refl {Γ = Γ ,- σ} = ⋈ctx-refl ,- ⋈-refl
 
-
-
-
 ⋈ctx-refl-empty : ∀ {n}{Γ : ctx n} → (Γ +++ empty)  ⋈ctx Γ
 ⋈ctx-refl-empty {n} {Γ} = subst (λ x → x ⋈ctx Γ) (sym +++empty) ⋈ctx-refl
+
+⋈ctx-trans : ∀ {n} {Γ₁ Γ₂ Γ₃ : ctx n} → Γ₁ ⋈ctx Γ₂ → Γ₂ ⋈ctx Γ₃ → Γ₁ ⋈ctx Γ₃
+⋈ctx-trans nil nil = nil
+⋈ctx-trans (p1 ,- x1) (p2 ,- x2) = ⋈ctx-trans p1 p2 ,- ⋈-trans x1 x2
+
+⋈ctx-empty : ∀ {n} {Γ : ctx n} → empty {n} ⋈ctx Γ → Γ ≡ empty
+⋈ctx-empty nil = refl
+⋈ctx-empty (p ,- x) with ⋈ctx-empty p | ⋈-[] (⋈-sym x)
+... | refl | refl = refl
 
 data _⊢v_⦂_ : ∀ {n} → ctx n → Fin n → type → Set where
   zero : ∀ {n τ} → (empty {n} ,- [ τ ]) ⊢v zero ⦂ τ
@@ -62,15 +68,49 @@ mutual
 singl⊢  : ∀ {n}  {Γ : ctx n}  {t A} →  Γ ⊢ t ⦂ A →  Γ  ⊢ t ⦂' [ A ]
 singl⊢ p = p ,~ ⋈ctx-refl-empty ∷ nil
 
-lift⊢ : ∀ {A} →{n : ℕ} → {t : term zero} →  nil  ⊢ t ⦂ A → empty {n}  ⊢ lift {n} t ⦂ A
-lift⊢  d = {!!}
+lift⊢v : ∀ {n m} {Γ : ctx n} {i : Fin n} {τ : type}
+       → (le : n ≤ m) → Γ ⊢v i ⦂ τ → liftctx le Γ ⊢v liftFin le i ⦂ τ
+lift⊢v (s≤s le) zero   rewrite liftctxempty le = zero
+lift⊢v (s≤s le) (suc h) = suc (lift⊢v le h)
 
-⊢⋈ctx : ∀ {n}  {Γ₁ Γ₂ : ctx n}  {t A} →  Γ₁  ⊢ t ⦂ A →  Γ₁ ⋈ctx Γ₂ →  Γ₂   ⊢ t ⦂  A
-⊢⋈ctx h p = {!!}
--- ⊢⋈ctx (var hv) p = {!!}
--- ⊢⋈ctx (lam h) p = {!!}
--- ⊢⋈ctx (app h1 h2 h3) p = {!!}
--- ⊢⋈ctx (lam⋆) p = {!lam⋆!}
+lift⋈ctx : ∀ {n m} {Γ₁ Γ₂ Γ : ctx n}
+         → (le : n ≤ m) → (Γ₁ +++ Γ₂) ⋈ctx Γ → (liftctx le Γ₁ +++ liftctx le Γ₂) ⋈ctx liftctx le Γ
+lift⋈ctx {n} {m} {Γ₁ = nil} {Γ₂ = nil} z≤n nil       rewrite +++empty {Γ = empty {m}} = ⋈ctx-refl
+lift⋈ctx {n} {m} {Γ₁ = (Γ₃ ,- σ₁)} {Γ₂ = (Γ₄ ,- σ₂)} (s≤s le)  (p ,- x) = lift⋈ctx le p ,- x
+
+
+mutual
+  lift⊢' : ∀ {n m} {Γ : ctx n} {t : term n} {A : type}
+         → (le : n ≤ m) → Γ ⊢ t ⦂ A → liftctx le Γ ⊢ lift' t le ⦂ A
+  lift⊢' le (var h)       = var (lift⊢v le h)
+  lift⊢' le (lam h)       = lam (lift⊢' (s≤s le) h)
+  lift⊢' le (app h1 h2 h3) = app (lift⊢' le h1) (lift⊢'' le h2) (lift⋈ctx le h3)
+  lift⊢' le lam⋆          rewrite liftctxempty le = lam⋆
+
+  lift⊢'' : ∀ {n m} {Γ : ctx n} {t : term n} {As : List type}
+          → (le : n ≤ m) → Γ ⊢ t ⦂' As → liftctx le Γ ⊢ lift' t le ⦂' As
+  lift⊢'' le nil          rewrite liftctxempty le = nil
+  lift⊢'' le (h1 ,~ h2 ∷ h3) = lift⊢' le h1 ,~ lift⋈ctx le h2 ∷ lift⊢'' le h3
+
+
+lift⊢ : ∀ {A} → {n : ℕ} → {t : term zero} → nil ⊢ t ⦂ A → empty {n} ⊢ lift {n} t ⦂ A
+lift⊢ H = lift⊢' z≤n H
+
+mutual
+  ⊢⋈ctx : ∀ {n}  {Γ₁ Γ₂ : ctx n}  {t A} →  Γ₁  ⊢ t ⦂ A →  Γ₁ ⋈ctx Γ₂ →  Γ₂   ⊢ t ⦂  A
+  ⊢⋈ctx (var zero) (p ,- x) with ⋈ctx-empty p | ⋈-[A] (⋈-sym x)
+  ... | refl | refl = var zero
+  ⊢⋈ctx (var (suc m)) (p ,- x) with ⊢⋈ctx (var m) p | ⋈-[] (⋈-sym x)
+  ... | var h | refl = var (suc h)
+  ⊢⋈ctx (lam h) p = lam (⊢⋈ctx h (p ,- ⋈-refl))
+  ⊢⋈ctx (app h1 h2 h3) p = app h1 h2 (⋈ctx-trans h3 p)
+  ⊢⋈ctx lam⋆ p with ⋈ctx-empty p
+  ... | refl = lam⋆
+
+  ⊢⋈ctx' : ∀ {n} {Γ₁ Γ₂ : ctx n} {t As} → Γ₁ ⊢ t ⦂' As → Γ₁ ⋈ctx Γ₂ → Γ₂ ⊢ t ⦂' As
+  ⊢⋈ctx' nil p with ⋈ctx-empty p
+  ... | refl = nil
+  ⊢⋈ctx' (h1 ,~ h2 ∷ h3) p = h1 ,~ ⋈ctx-trans h2 p ∷ h3
 
 
 apply-split-2-1 : {N : ℕ} {t : term 3} → {f g : ℕ → type} → (F : (k : ℕ) → (((nil ,- []) ,- ((f (suc (2 * k))) ∷ [ f (2 * k) ])) ,- []) ⊢ t ⦂ (g k)) →
@@ -142,33 +182,6 @@ appsplit2 : ∀ {σ₁ σ₂ σ₃ σ τ s t} →
       (((nil ,- []) ,-  σ₂) ,- []) ⊢ t ⦂' σ →
       (((nil ,- σ₁) ,-  σ₂) ,- σ₃) ⊢ s · t  ⦂ τ
 appsplit2 Hs Ht = app Hs Ht (((((nil ,- ⋈++[]) ,- ⋈-refl) ,- ⋈++[])))
-
-
----------- Terms  -------
-
-church-aux : ℕ → term (suc (suc zero))
-church-aux zero = ` zero
-church-aux (suc n) = ` (suc zero) · church-aux n
-
--- λfx.f (f .. (f x))
-church : ℕ → term zero
-church n = ƛ (ƛ (church-aux n))
-
--- λfx.f x
-one : term zero
-one = ƛ (ƛ (` (suc zero) · ` zero))
-
--- λnfx.n f (n f x)
-double : term zero
-double = ƛ (ƛ (ƛ (` (suc (suc zero)) · ` (suc zero) · (` (suc (suc zero)) · ` (suc zero) · ` zero))))
-
--- λxny.n y (x x (n + n) y)
-theta : term zero
-theta = ƛ (ƛ (ƛ (` (suc zero) · ` zero · (` (suc (suc zero)) · ` (suc (suc zero)) · ((lift double) ·  (` (suc zero))) · ` zero))))
-
--- The inlining fixpoint
-omega : term zero
-omega = theta · theta · one
 
 
 
@@ -280,7 +293,11 @@ module _ {A : ℕ → type } where
   type-church m zero = lam (lam (type-church-aux0 m))
   type-church m (suc k) = lam (lam (type-church-aux m (suc k)))
 
+  type-church' : (m : ℕ) → (k : ℕ) → m ≥ 1 →  nil ⊢ church m  ⦂ M k m
+  type-church' m k le = {!!}
 
+  type-church-multi : (n : ℕ) → (m : ℕ) → m ≥ 1  → nil ⊢ church m  ⦂' W1 n m
+  type-church-multi n m le = {!!}
 
   type-double-zero-aux : (m : ℕ) → (((nil ,-  [ M 0  m ]) ,- applyUpTo (λ i → Y i) m) ,- [])  ⊢
                                             ` suc (suc zero) · ` suc zero ⦂ ([] ↦ A m)
@@ -428,3 +445,13 @@ module _ {A : ℕ → type } where
                                                                           ⦂ A (m * pred ((2 ^ n) + ((2 ^ n) + zero) + pow-minus1 n))
        type-theta-aux2 = appvar2 (appsplit2 {σ = W1 n (2 * m)} (type-xx m n le) (type-doublem m n le))
 
+  type-theta-multi : (n m : ℕ) → m ≥ 1 → nil ⊢ theta ⦂' Xs n m
+  type-theta-multi zero m le = singl⊢ (type-theta zero m le)
+  type-theta-multi(suc n)  m le = (type-theta (suc n) m le) ,~ nil ∷ (type-theta-multi n (2 * m) (2*m≥1 le))
+
+  type-omegam :(n m : ℕ) → m ≥ 1 →  nil ⊢ theta  · theta · (church m)⦂ F n m
+  type-omegam 0 m le = app (app[] (type-theta 0 m le)) (type-church-multi 0 m  le) nil
+  type-omegam (suc n) m le = app (app (type-theta (suc n) m le) (type-theta-multi n (2 * m) (2*m≥1 le)) nil) (type-church-multi (suc n) m  le) nil
+
+  type-omega : (n : ℕ) → nil ⊢ omega ⦂ F n 1
+  type-omega n = type-omegam n 1 (s≤s z≤n)

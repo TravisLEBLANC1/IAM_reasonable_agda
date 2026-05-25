@@ -28,6 +28,9 @@ pow-≥1 {suc n} = lemaux  (pow-≥1 {n})
 m*suc≥1 : {m k : ℕ} → m ≥ 1 → m * (suc k) ≥ 1
 m*suc≥1 = {!!}
 
+2*m≥1 : {m : ℕ} → m ≥ 1 → 2 * m ≥ 1
+2*m≥1 {m} le = ≤-trans le (m≤m+n m (m + zero))
+
 pow-≥2 : ∀ {n : ℕ} → pow-minus1 (suc n) ≥ 2
 pow-≥2 {zero} = s≤s (s≤s (z≤n))
 pow-≥2 {suc n} = {!!}

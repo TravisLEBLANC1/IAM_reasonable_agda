@@ -53,3 +53,40 @@ nil        +++ nil       = nil
 +++empty : ∀ {n} {Γ : ctx n} → (Γ +++ empty) ≡ Γ
 +++empty {zero} {nil} = refl
 +++empty {suc n} {Γ ,- σ} = cong₂ _,-_ +++empty (++-identityʳ σ )
+
+
+liftctx : ∀ {n m} → n ≤ m  → ctx n → ctx m
+liftctx z≤n nil         = empty
+liftctx (s≤s le) (Γ ,- x) = liftctx le Γ ,- x
+
+liftctxempty : ∀ {n m} →(le : n ≤ m)  → liftctx le (empty {n}) ≡ empty {m}
+liftctxempty z≤n = refl
+liftctxempty (s≤s le) = subst (λ r → (r ,- []) ≡ (empty ,- [])) (sym (liftctxempty le)) refl
+
+
+---------- Terms  -------
+
+church-aux : ℕ → term (suc (suc zero))
+church-aux zero = ` zero
+church-aux (suc n) = ` (suc zero) · church-aux n
+
+-- λfx.f (f .. (f x))
+church : ℕ → term zero
+church n = ƛ (ƛ (church-aux n))
+
+-- λfx.f x
+one : term zero
+one = ƛ (ƛ (` (suc zero) · ` zero))
+
+-- λnfx.n f (n f x)
+double : term zero
+double = ƛ (ƛ (ƛ (` (suc (suc zero)) · ` (suc zero) · (` (suc (suc zero)) · ` (suc zero) · ` zero))))
+
+-- λxny.n y (x x (n + n) y)
+theta : term zero
+theta = ƛ (ƛ (ƛ (` (suc zero) · ` zero · (` (suc (suc zero)) · ` (suc (suc zero)) · ((lift double) ·  (` (suc zero))) · ` zero))))
+
+-- The inlining fixpoint
+omega : term zero
+omega = theta · theta · one
+

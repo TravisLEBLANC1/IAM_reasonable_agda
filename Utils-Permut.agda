@@ -5,7 +5,8 @@ open import Data.List.Properties using (++-identityʳ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
-
+open import term
+open import term using (empty)
 
 module Utils-Permut {X : Set} where
   data _⋈_ : List X -> List X -> Set where
@@ -67,3 +68,14 @@ module Utils-Permut {X : Set} where
 
   ⋈++[] : ∀ {σ} → (σ ++ []) ⋈ σ
   ⋈++[] {σ} rewrite ++-identityʳ σ = ⋈-refl
+
+  ⋈-[] : ∀ {σ} → σ ⋈ [] → σ ≡ []
+  ⋈-[] {σ} nil = refl
+  ⋈-[] {σ} (⋈-trans p₁ p₂) with ⋈-[] p₂
+  ... | refl = ⋈-[] p₁
+
+  ⋈-[A] : ∀ {A σ} → σ ⋈ [ A ] → σ ≡ [ A ]
+  ⋈-[A] (skip p) with ⋈-[] p
+  ... | refl = refl
+  ⋈-[A] (⋈-trans p₁ p₂) with  ⋈-[A] p₂
+  ... | refl = ⋈-[A] p₁
