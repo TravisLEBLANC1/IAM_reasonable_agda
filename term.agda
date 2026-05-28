@@ -1,11 +1,15 @@
 {-# OPTIONS --without-K  --safe  #-}
 
-open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
-open import Data.Fin using (Fin; zero; suc; _≟_)
+open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _<_; _≥_;  z≤n; s≤s; pred)
+open import Data.Fin using (Fin; zero; suc; _≟_; fromℕ)
 open import Data.List using (List; []; _∷_; _++_; [_])
+open import Data.Nat.Properties using (n∸n≡0;≤-refl)
 open import Data.List.Properties using (++-identityʳ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
+open import Agda.Builtin.Nat using (_-_)
+
+open import Utils-integers
 
 -- inspired by
 -- https://bentnib.org/posts/2020-08-13-non-idempotent-intersection-types.html
@@ -90,3 +94,48 @@ theta = ƛ (ƛ (ƛ (` (suc zero) · ` zero · (` (suc (suc zero)) · ` (suc (suc
 omega : term zero
 omega = theta · theta · one
 
+
+------- strings ---------
+
+data alphabet : Set where
+  Alph : (Σ : ℕ) → (0 < Σ) → alphabet
+
+in-alph : (a : ℕ) → (Σ : alphabet) → Set
+in-alph a (Alph Σ 0<Σ) = a < Σ
+
+data letter (Σ : alphabet) : Set where
+  Lett : (a : ℕ) → (in-alph a Σ) → letter Σ
+
+-- a string is a list of letter,
+-- a letter is an integer a < Σ, where Σ is the size of the alphabet
+data string (Σ : alphabet) : Set where
+  Eps : string Σ
+  Cons : letter Σ → string Σ → string Σ
+
+
+-- (ƛ ... ƛ. t)
+N-ƛ : (N : ℕ) → (t : term N) → term zero
+N-ƛ N t  = subst (λ r → term r) (n∸n≡0 N ) (N-ƛ-aux N N ≤-refl t)
+  where
+    N-ƛ-aux : (N : ℕ) → (N' : ℕ) → N ≥ N' →(t : term N) → term (N  -  N')
+    N-ƛ-aux N zero le t = t
+    N-ƛ-aux N (suc N') le  t = ƛ (subst (λ r → term r) (sym (suc--suc le)) (N-ƛ-aux N N' (≥-suc le) t))
+
+-- ƛ ... ƛ. a
+letter-term : (Σ : alphabet) → (a : letter Σ) → term zero
+letter-term (Alph Σ 0<Σ)  (Lett a a<Σ)  = N-ƛ Σ (lift' (` fromℕ a) a<Σ)
+
+ε-letter : (Σ : alphabet) → letter Σ
+ε-letter (Alph Σ 0<Σ)  = Lett 0 0<Σ
+
+-- ƛ ... ƛ. ε
+ε-term : (Σ : alphabet) → term zero
+ε-term Σ = letter-term Σ (ε-letter Σ)
+
+--  (ƛ ... ƛ. a (... (ƛ ... ƛ. ε))
+string-term : (Σ : alphabet) → (s : string Σ) → term zero
+string-term Σ Eps = ε-term Σ
+string-term (Alph Σ 0<Σ)  (Cons (Lett a a<Σ) s) = N-ƛ Σ (lift' (` fromℕ a) a<Σ · (lift (string-term (Alph Σ 0<Σ) s)))
+
+-- append : (Σ : alphabet) → (a : letter Σ) → term zero
+-- append Σ a = ƛ (ƛ (` zero · {!N-ƛ !}))
