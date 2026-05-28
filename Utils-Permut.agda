@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K --safe  #-}
 
 open import Data.List using (List; []; _∷_; _++_; [_])
 open import Data.List.Properties using (++-identityʳ)

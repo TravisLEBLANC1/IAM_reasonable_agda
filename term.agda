@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K  --safe  #-}
 
 open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
 open import Data.Fin using (Fin; zero; suc; _≟_)

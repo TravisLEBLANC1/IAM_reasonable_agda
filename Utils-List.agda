@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K  --safe #-}
 
 open import Data.List using (List; []; _∷_; _++_; [_])
 open import Data.List.Properties using (++-identityʳ)
@@ -13,8 +13,8 @@ open import Utils-Permut
 open import term
 
 -- todo: remove ext (not really needed I think)
-postulate
-  ext : Extensionality (Agda.Primitive.lzero) (Agda.Primitive.lzero)
+-- postulate
+--   ext : Extensionality (Agda.Primitive.lzero) (Agda.Primitive.lzero)
 
 
 applyUpTo : {A : Set} →  (ℕ → A) → ℕ → List A
@@ -60,10 +60,10 @@ apply-cong (suc n) eq = cong₂ _∷_ (eq n) (apply-cong n eq)
 -- apply-exchange : ∀ {B} {f : ℕ → B} (m : ℕ) → (f m ∷ applyUpTo f m) ⋈ (f 0 ∷ applyUpTo (λ i → f (suc i)) m)
 -- apply-exchange m = ⋈-trans (apply-addlast m) ⋈-refl
 
-applyUpTo-ext : {A : Set} (f g : ℕ → A) (n : ℕ)
-              → (∀ i → f i ≡ g i)
-              → applyUpTo f n ≡ applyUpTo g n
-applyUpTo-ext f g zero eq = refl
-applyUpTo-ext f g (suc n) eq rewrite eq n | applyUpTo-ext f g n eq = refl
+-- applyUpTo-ext : {A : Set} (f g : ℕ → A) (n : ℕ)
+--               → (∀ i → f i ≡ g i)
+--               → applyUpTo f n ≡ applyUpTo g n
+-- applyUpTo-ext f g zero eq = refl
+-- applyUpTo-ext f g (suc n) eq rewrite eq n | applyUpTo-ext f g n eq = refl
 
 

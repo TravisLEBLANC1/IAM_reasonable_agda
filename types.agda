@@ -1,6 +1,8 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K --safe #-}
+
 open import Data.Fin using (Fin; zero; suc; _≟_)
-open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
+open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred )
+open import Data.Nat.Properties using (≤-refl; ≤-trans; m≤n+m)
 open import Data.List using (List; []; _∷_; _++_; [_])
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
@@ -8,6 +10,7 @@ open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
 open import term
 open import Utils-List
 open import Utils-Permut
+open import Utils-integers
 
 
 data _⋈ctx_ : ∀ {n} → ctx n → ctx n → Set where
@@ -58,6 +61,37 @@ mutual
           (Γ₁ +++ Γ₂) ⋈ctx Γ →
           Γ₂ ⊢ t ⦂' σ →
           Γ ⊢ t ⦂' (τ ∷ σ)
+
+mutual
+  τ-size : (τ : type) → ℕ
+  τ-size ⋆ = 1
+  τ-size (σ ↦ τ) = (σ-size σ) + (τ-size τ)
+
+  σ-size : (l : List type) → ℕ
+  σ-size [] = 0
+  σ-size (τ ∷ σ) = τ-size τ + σ-size σ
+
+⊢v-size : ∀ {n} {Γ : ctx n} {t : Fin n} {τ : type} → (Γ ⊢v t ⦂ τ) → ℕ
+⊢v-size {τ = τ} H = τ-size τ
+
+
+mutual
+  ⊢⦂size : ∀ {n} {Γ : ctx n} {t : term n} {τ : type} → (Γ ⊢ t ⦂ τ) → ℕ
+  ⊢⦂size {τ = τ} (var H) = τ-size τ
+  ⊢⦂size (lam {σ = σ} {τ = τ} H) = ⊢⦂size H + τ-size (σ ↦ τ)
+  ⊢⦂size (app {τ = τ} H1 H2 p) = ⊢⦂size H1 + ⊢⦂'size H2 + τ-size τ
+  ⊢⦂size (lam⋆) = 0
+
+  ⊢⦂'size : ∀ {n} {Γ : ctx n} {t : term n} {σ : List type} → (Γ ⊢ t ⦂' σ) → ℕ
+  ⊢⦂'size nil = 0
+  ⊢⦂'size (H1 ,~ p ∷ H2)= ⊢⦂size H1 + ⊢⦂'size H2
+
+
+⊢⦂size≥ : ∀ {n} {Γ : ctx n} {t : term n} {τ : type} (H : Γ ⊢ t ⦂ τ) → suc (⊢⦂size H) ≥ τ-size τ
+⊢⦂size≥ {τ = τ} (var H) =  x≤suc[x] (τ-size τ)
+⊢⦂size≥ (lam {σ = σ} {τ = τ} H) = ≤-trans (x≤suc[x] _) (s≤s (m≤n+m _ (⊢⦂size H)))
+⊢⦂size≥ (app {τ = τ} H1 H2 p) = ≤-trans (x≤suc[x] (τ-size τ)) (s≤s (m≤n+m (τ-size τ) _))
+⊢⦂size≥ (lam⋆) = ≤-refl
 
 
 singl⊢  : ∀ {n}  {Γ : ctx n}  {t A} →  Γ ⊢ t ⦂ A →  Γ  ⊢ t ⦂' [ A ]

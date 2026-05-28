@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
 open import Data.Nat.Properties using (+-assoc; +-comm; +-identityʳ; +-identityˡ ; *-identityˡ;  *-identityʳ; *-zeroˡ ;*-zeroʳ; suc-injective; +-suc; *-suc; *-monoʳ-≤; ≤-trans; m≤m+n; +-monoʳ-≤; *-comm; *-assoc)
@@ -142,6 +142,12 @@ module _ {A : ℕ → type } where
 
   type-church-multi : (n : ℕ) → (m : ℕ) → m ≥ 1  → nil ⊢ church m  ⦂' W1 n m
   type-church-multi n m le = type-apply (pow-minus1 n) (λ k → type-church' m (m * k) le)
+
+
+
+
+
+
 
   type-double-zero-aux : (m : ℕ) → (((nil ,-  [ M 0  m ]) ,- applyUpTo (λ i → Y i) m) ,- [])  ⊢
                                             ` suc (suc zero) · ` suc zero ⦂ ([] ↦ A m)

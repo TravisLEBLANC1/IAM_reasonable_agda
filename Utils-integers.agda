@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K  #-}
+{-# OPTIONS --without-K  --safe #-}
 
 --/!\ this file is almost entirely LLMs proofs
 
@@ -120,3 +120,7 @@ pow-factor2m {n} {m} =
 
 pred≥1 : {k : ℕ} → k ≥ 2 → pred k ≥ 1
 pred≥1 {k} (s≤s (s≤s le)) = s≤s z≤n
+
+x≤suc[x] : (x : ℕ) → (x ≤ suc x)
+x≤suc[x] zero = z≤n
+x≤suc[x] (suc x) = s≤s (x≤suc[x] x)
