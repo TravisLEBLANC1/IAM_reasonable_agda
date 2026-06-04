@@ -1,14 +1,18 @@
 {-# OPTIONS --without-K  --safe #-}
 
+-- {-# OPTIONS --allow-unsolved-metas #-}
+
 --/!\ this file is almost entirely LLMs proofs
 
 
-open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
-open import Data.Nat.Properties using (+-assoc; +-comm; +-identityʳ; +-identityˡ ; *-identityˡ;  *-identityʳ; *-zeroˡ ;*-zeroʳ; suc-injective; +-suc; *-suc; *-monoʳ-≤; ≤-trans; m≤m+n; +-monoʳ-≤; *-comm; *-assoc; n≤1+n)
+open import Data.Nat
+open import Data.Nat.Properties
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import Agda.Builtin.Nat using (_-_)
+open import Data.Sum using (_⊎_)
+
 
 ------ Integer manipulations -------
 -- pow-minus1 n = 2^{n+1} - 1
@@ -127,10 +131,9 @@ x≤suc[x] zero = z≤n
 x≤suc[x] (suc x) = s≤s (x≤suc[x] x)
 
 
-
-suc--suc : ∀ {N N' : ℕ} → N ≥ N' → suc (N - N') ≡ suc N - N'
-suc--suc z≤n = refl
-suc--suc (s≤s le) = suc--suc  le
-
 ≥-suc : ∀ {N N' : ℕ} → N ≥ suc N' → N ≥ N'
 ≥-suc (s≤s {n = n} le) = ≤-trans le (n≤1+n n)
+
+sucsuca--a : ∀ (a : ℕ) → suc (suc a) ∸ a ≡ 2
+sucsuca--a zero = refl
+sucsuca--a (suc a) = sucsuca--a a

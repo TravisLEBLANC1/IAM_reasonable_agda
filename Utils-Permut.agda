@@ -6,7 +6,6 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import term
-open import term using (empty)
 
 module Utils-Permut {X : Set} where
   data _⋈_ : List X -> List X -> Set where

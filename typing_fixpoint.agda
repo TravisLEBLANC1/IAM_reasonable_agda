@@ -34,8 +34,6 @@ apply-split-2-1 {suc (suc N)} {f = f} {g = g} F (s≤s le)  =  F (suc N) ,~ (((n
     lemaux3 rewrite +-suc N (suc (N + 0)) = ⋈-refl
 
 
-
-
 module _ {A : ℕ → type } where
   Y' : ℕ → List type
   Y' zero = []
@@ -188,7 +186,7 @@ module _ {A : ℕ → type } where
 
   -- ------- typing the function double -----
   type-double :(m : ℕ) (k : ℕ)  → m ≥ 1 →  nil  ⊢  double ⦂  (M (m * (suc k)) m ∷ [ M (m * k) m  ] ) ↦ M (m * k) (2 * m)
-  type-double m zero le rewrite *-zeroʳ m | *-zeroʳ (2 * m)  | *-identityʳ m = type-double-zero m le
+  type-double m zero le rewrite *-zeroʳ m | *-zeroʳ (2 * m)  | *-identtyʳ m = type-double-zero m le
   type-double m (suc k) le rewrite M-≥1 {2 * m} {m * suc k} (m*suc≥1 le) | +-identityʳ m  = lam (lam (lam (app {σ = [ A (m + m * (suc k))]} {Γ₁ = Γ₁} {Γ₂ = Γ₂}  (lemaux) (singl⊢ (type-double-aux' m (m * suc k) (m*suc≥1 le))) Γ⋈ctx)))
     where
       Γ = (((nil ,- (M (m * suc (suc k)) m  ∷ [ M (m * (suc k)) m  ])) ,-  applyUpTo (λ i → Y (i + m * (suc k))) (m + m))
