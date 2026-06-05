@@ -8,8 +8,8 @@
 open import Data.Nat
 open import Data.Nat.Properties
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
-open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
+open Eq
+open Eq.≡-Reasoning
 open import Agda.Builtin.Nat using (_-_)
 open import Data.Sum using (_⊎_)
 

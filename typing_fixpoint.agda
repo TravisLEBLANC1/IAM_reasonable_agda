@@ -1,14 +1,14 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Data.Nat using (ℕ; zero; suc; _^_; _*_; _+_; _≤_; _≥_;  z≤n; s≤s; pred)
-open import Data.Nat.Properties using (+-assoc; +-comm; +-identityʳ; +-identityˡ ; *-identityˡ;  *-identityʳ; *-zeroˡ ;*-zeroʳ; suc-injective; +-suc; *-suc; *-monoʳ-≤; ≤-trans; m≤m+n; +-monoʳ-≤; *-comm; *-assoc)
-open import Data.Fin using (Fin; zero; suc; _≟_)
-open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.List using (List; []; _∷_; _++_; [_])
-open import Data.List.Properties using (++-identityʳ)
+open import Data.Nat
+open import Data.Nat.Properties
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Product
+open import Data.List  using (List; []; _∷_; _++_; [_])
+open import Data.List.Properties
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
-open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
+open Eq.≡-Reasoning
 
 open import Utils-integers
 open import Utils-List
@@ -182,11 +182,11 @@ module _ {A : ℕ → type } where
       Γ₂ = (((nil ,- [ M 0 m ])) ,- applyUpTo Y  m ),- []
 
       Γ⋈ctx : (Γ₁ +++ Γ₂ )⋈ctx Γ
-      Γ⋈ctx rewrite +-identityʳ m = ((nil ,- ⋈-refl ) ,- apply-split+' m m ) ,- nil
+      Γ⋈ctx  = ((nil ,- ⋈-refl ) ,- apply-split+' m m ) ,- nil
 
   -- ------- typing the function double -----
   type-double :(m : ℕ) (k : ℕ)  → m ≥ 1 →  nil  ⊢  double ⦂  (M (m * (suc k)) m ∷ [ M (m * k) m  ] ) ↦ M (m * k) (2 * m)
-  type-double m zero le rewrite *-zeroʳ m | *-zeroʳ (2 * m)  | *-identtyʳ m = type-double-zero m le
+  type-double m zero le rewrite *-zeroʳ m |  *-identityʳ m = type-double-zero m le
   type-double m (suc k) le rewrite M-≥1 {2 * m} {m * suc k} (m*suc≥1 le) | +-identityʳ m  = lam (lam (lam (app {σ = [ A (m + m * (suc k))]} {Γ₁ = Γ₁} {Γ₂ = Γ₂}  (lemaux) (singl⊢ (type-double-aux' m (m * suc k) (m*suc≥1 le))) Γ⋈ctx)))
     where
       Γ = (((nil ,- (M (m * suc (suc k)) m  ∷ [ M (m * (suc k)) m  ])) ,-  applyUpTo (λ i → Y (i + m * (suc k))) (m + m))
@@ -267,7 +267,7 @@ module _ {A : ℕ → type } where
       Γ₂ = ((nil ,- []) ,- [] ) ,- ( applyUpTo (λ i → Y i) (m * 1) )
 
       lemaux : (Γ₁ +++ Γ₂) ⋈ctx (((nil ,- []) ,- W1 0 m ) ,- applyUpTo Y (m * 1))
-      lemaux rewrite +-identityʳ m = ⋈ctx-refl
+      lemaux = ⋈ctx-refl
 
       zero' : {m : ℕ} → m ≥ 1 →  ((nil ,- []) ,- W1 0 m) ⊢v zero ⦂ ((applyUpTo (λ i → Y i) (m * 1)) ↦ [] ↦ A (m * 1))
       zero' {m} le rewrite *-identityʳ m |  *-zeroʳ m = zero

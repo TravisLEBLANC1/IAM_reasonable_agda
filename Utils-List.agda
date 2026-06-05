@@ -7,7 +7,7 @@ open import Data.Nat.Properties using (+-assoc; +-comm; +-identityʳ; +-identity
 open import Axiom.Extensionality.Propositional using (Extensionality ; ExtensionalityImplicit )
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
-open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
+open Eq.≡-Reasoning
 
 open import Utils-Permut
 open import term

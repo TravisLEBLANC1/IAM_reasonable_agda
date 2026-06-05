@@ -197,7 +197,7 @@ append : (Σ : alphabet) → (a : letter Σ) → term zero
 append (Alph Σ 0<Σ) (Lett a a<Σ) = ƛ (ƛ (` zero · as-term))
   where
     a-term : term (suc(suc(Σ)))
-    a-term = lift' (` fromℕ a) (≤-step (≤-step a<Σ))
+    a-term = lift' (` fromℕ a) (m≤n⇒m≤1+n (s≤s (≥-suc a<Σ)))
 
     s-term : term (suc(suc(Σ)))
     s-term = ` (fromℕ (suc(Σ)))
@@ -237,34 +237,34 @@ module TM-Module (Σ : alphabet) (Q : alphabet) (tm : TM Σ Q) where
   init-term = ƛ ((lift lift-term) · ƛ (` (suc zero) · config-term-v {Σ = Σ□} {Q = Q}  [] □-letter (` zero) qi))
 
   --ƛx ƛk ƛy. y (ƛu ƛa ƛv ƛq. q M0 M1 .. M(Q-1))
-  transaux :  term zero
-  transaux = ƛ (ƛ (ƛ (y · ƛ (ƛ (ƛ (ƛ (q · N-· Q FM)))))))
-    where
-      x = `  suc (suc (suc (suc (suc (suc zero)))))
-      k = `  suc (suc (suc (suc (suc zero))))
-      y = `  zero
-      u = `  suc (suc (suc zero))
-      a =  ` suc (suc zero)
-      v =  ` suc zero
-      q =  ` zero
+  -- transaux :  term zero
+  -- transaux = ƛ (ƛ (ƛ (y · ƛ (ƛ (ƛ (ƛ (q · N-· Q FM)))))))
+  --   where
+  --     x = `  suc (suc (suc (suc (suc (suc zero)))))
+  --     k = `  suc (suc (suc (suc (suc zero))))
+  --     y = `  zero
+  --     u = `  suc (suc (suc zero))
+  --     a =  ` suc (suc zero)
+  --     v =  ` suc zero
+  --     q =  ` zero
 
-      -- ƛu. append a (ƛw. x k ⟨  ⟩)
-      FL :(a' : letter Σ□) → (q' : state Q) → (a : letter Σ□) → term 7
-      FL a' q' (Lett 0 0<Σ□) = {!!}
-      FL a' q' a = ƛ {!!}
+  --     -- ƛu. append a (ƛw. x k ⟨  ⟩)
+  --     FL :(a' : letter Σ□) → (q' : state Q) → (a : letter Σ□) → term 7
+  --     FL a' q' (Lett 0 0<Σ□) = {!!}
+  --     FL a' q' a = ƛ {!!}
 
-      FR : (a' : letter Σ□) → (q' : state Q) → (a : letter Σ□) → term 7
-      FR a' q' a = {!!}
+  --     FR : (a' : letter Σ□) → (q' : state Q) → (a : letter Σ□) → term 7
+  --     FR a' q' a = {!!}
 
-      FN : (q : state Q) → (a : letter Σ□) → term 7
-      FN q a with δ  a q
-      ... | inj₁ Final = k · config-term-uv' u a v q
-      ... | inj₂ (a' , q' , Left)   = x · k · config-term-uv' u a' v q'
-      ... | inj₂ (a' , q' , Rigt) =  u · (N-· Σ□ (FL a' q'))
-      ... | inj₂ (a' , q' , Down)   = v · (N-· Σ□ (FR a' q'))
+  --     FN : (q : state Q) → (a : letter Σ□) → term 7
+  --     FN q a with δ  a q
+  --     ... | inj₁ Final = k · config-term-uv' u a v q
+  --     ... | inj₂ (a' , q' , Left)   = x · k · config-term-uv' u a' v q'
+  --     ... | inj₂ (a' , q' , Rigt) =  u · (N-· Σ□ (FL a' q'))
+  --     ... | inj₂ (a' , q' , Down)   = v · (N-· Σ□ (FR a' q'))
 
-      FM : (q : state Q) → term 7
-      FM q = a · N-· Σ□ (FN q)
+  --     FM : (q : state Q) → term 7
+  --     FM q = a · N-· Σ□ (FN q)
 
-  trans-term :  term zero
-  trans-term = omega · (transaux)
+  -- trans-term :  term zero
+  -- trans-term = omega · (transaux)

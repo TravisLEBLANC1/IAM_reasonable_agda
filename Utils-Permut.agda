@@ -4,7 +4,7 @@ open import Data.List using (List; []; _∷_; _++_; [_])
 open import Data.List.Properties using (++-identityʳ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; trans; cong; subst; sym; _≢_; cong₂)
-open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
+open Eq.≡-Reasoning
 open import term
 
 module Utils-Permut {X : Set} where
